@@ -1,5 +1,5 @@
 const { registerUser } = require("../services/authService");
-const { errResponse } = require("../utils");
+const { errResponse } = require("../utils/utils");
 
 const createNewUser = async (req, res) => {
 	if (!req.body)

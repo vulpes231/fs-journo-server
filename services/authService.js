@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { throwError } = require("../utils");
+const { throwError } = require("../utils/utils");
 require("dotenv").config();
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
@@ -21,17 +21,19 @@ async function loginUserAccount(userData) {
 
 		const accessToken = jwt.sign(
 			{
-				user: user.username,
+				username: user.username,
+				userId: user._id,
 			},
 			ACCESS_TOKEN,
-			{ expiresIn: "15m" }
+			{ expiresIn: "1d" }
 		);
 		const refreshToken = jwt.sign(
 			{
-				user: user.username,
+				username: user.username,
+				userId: user._id,
 			},
 			REFRESH_TOKEN,
-			{ expiresIn: "2 days" }
+			{ expiresIn: "7d" }
 		);
 
 		user.refreshToken = refreshToken;

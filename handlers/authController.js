@@ -1,5 +1,5 @@
 const { loginUserAccount } = require("../services/authService");
-const { errResponse } = require("../utils");
+const { errResponse } = require("../utils/utils");
 
 const loginUser = async (req, res) => {
 	const { username, password } = req.body;
@@ -10,7 +10,7 @@ const loginUser = async (req, res) => {
 		});
 
 		res.cookie("jwt", refreshToken, {
-			maxAge: 24 * 60 * 1000,
+			maxAge: 24 * 60 * 60 * 1000,
 			httpOnly: true,
 		});
 
