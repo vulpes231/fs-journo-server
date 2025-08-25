@@ -1,5 +1,4 @@
 const { loginUserAccount } = require("../services/authService");
-const { errResponse } = require("../utils/utils");
 
 const loginUser = async (req, res) => {
 	const { username, password } = req.body;
@@ -16,7 +15,7 @@ const loginUser = async (req, res) => {
 
 		res.status(200).json({ token: accessToken, data: userInfo, success: true });
 	} catch (error) {
-		errResponse(error, res);
+		next(error);
 	}
 };
 

@@ -1,13 +1,12 @@
-function throwError(error, msg, code) {
-	console.log(msg, error.message);
-	throw new Error(msg, { statusCode: code });
+class HttpError extends Error {
+	constructor(message, statusCode = 500) {
+		super(message);
+		this.statusCode = statusCode;
+		// Ensure the error name is the class name
+		this.name = this.constructor.name;
+		// Capture stack trace for better debugging
+		Error.captureStackTrace(this, this.constructor);
+	}
 }
 
-function errResponse(error, res) {
-	const statusCode = error.statusCode || 500;
-	res
-		.status(statusCode)
-		.json({ message: error.message, success: false, data: null });
-}
-
-module.exports = { throwError, errResponse };
+module.exports = { HttpError };
