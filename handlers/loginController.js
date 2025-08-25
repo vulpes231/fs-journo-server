@@ -1,51 +1,23 @@
-const User = require("../models/User");
-
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+const { loginUserAccount } = require("../services/authService");
+const { errResponse } = require("../utils");
 
 const loginUser = async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    if (!username || !password)
-      return res
-        .status(400)
-        .json({ message: "username and password required!" });
+	const { username, password } = req.body;
+	try {
+		const { accessToken, refreshToken, userInfo } = await loginUserAccount({
+			username,
+			password,
+		});
 
-    const user = await User.findOne({ username: username });
+		res.cookie("jwt", refreshToken, {
+			maxAge: 24 * 60 * 1000,
+			httpOnly: true,
+		});
 
-    if (!user) return res.status(400).json({ message: "user does not exist!" });
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (!passwordMatch)
-      return res.status(400).json({ message: "invalid username or password!" });
-
-    const accessToken = jwt.sign(
-      {
-        user: user.username,
-      },
-      ACCESS_TOKEN,
-      { expiresIn: "15m" }
-    );
-
-    const refreshToken = jwt.sign(
-      {
-        user: user.username,
-      },
-      REFRESH_TOKEN,
-      { expiresIn: "2 days" }
-    );
-
-    user.refreshToken = refreshToken;
-    user.save();
-
-    res.status(200).json({ accessToken });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "An error occured. Try again." });
-  }
+		res.status(200).json({ token: accessToken, data: userInfo, success: true });
+	} catch (error) {
+		errResponse(error, res);
+	}
 };
 
 module.exports = { loginUser };
