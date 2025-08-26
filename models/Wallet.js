@@ -10,12 +10,22 @@ const walletSchema = new Schema(
 		},
 		balance: {
 			type: Number,
+			default: 0,
+		},
+		name: {
+			type: String,
 		},
 		winRate: {
 			type: Number,
+			default: 0,
 		},
 		profitLoss: {
-			type: String,
+			type: Number,
+			default: 0,
+		},
+		isSuspended: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{

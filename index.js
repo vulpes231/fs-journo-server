@@ -28,6 +28,7 @@ app.use("/", require("./routes/root.js"));
 
 app.use(verifyJWT);
 app.use("/user", require("./routes/user.js"));
+app.use("/wallet", require("./routes/wallet.js"));
 
 app.use(errorHandler);
 app.use(logError);
