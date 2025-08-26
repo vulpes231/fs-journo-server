@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { HttpError } = require("../utils/utils");
@@ -75,6 +76,11 @@ async function registerUser(userData) {
 		};
 
 		const newUser = await User.create(data);
+
+		await Wallet.create({
+			name: "wallet 1",
+			userId: newUser._id,
+		});
 
 		return newUser.username;
 	} catch (error) {

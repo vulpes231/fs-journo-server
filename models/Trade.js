@@ -14,8 +14,18 @@ const tradeSchema = new Schema(
 		riskRatio: {
 			type: String,
 		},
+		status: {
+			type: String,
+			enum: ["open", "closed"],
+			default: "open",
+		},
 		result: {
 			type: String,
+			enum: ["won", "lost", "break even"],
+		},
+		wallet: {
+			id: { type: Schema.Types.ObjectId, ref: "Wallet" },
+			name: { type: String },
 		},
 		userId: {
 			type: Schema.Types.ObjectId,
@@ -24,15 +34,22 @@ const tradeSchema = new Schema(
 		execution: {
 			entry: {
 				type: Number,
-			},
-			exit: {
-				type: Number,
+				default: 0,
 			},
 			stopLoss: {
 				type: Number,
+				default: 0,
 			},
 			takeProfit: {
 				type: Number,
+				default: 0,
+			},
+			lotSize: {
+				type: String,
+			},
+			totalReturn: {
+				type: Number,
+				default: 0,
 			},
 			closedAt: {
 				type: Date,
@@ -45,6 +62,8 @@ const tradeSchema = new Schema(
 		virtuals: true,
 	}
 );
+
+tradeSchema.index({ status: -1 });
 
 const Trade = mongoose.model("Trade", tradeSchema);
 module.exports = Trade;
