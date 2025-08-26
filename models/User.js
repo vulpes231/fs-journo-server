@@ -30,6 +30,10 @@ const userSchema = new Schema({
 			type: Boolean,
 			default: false,
 		},
+		twoFaActivated: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	refreshToken: {
 		type: String,
