@@ -68,7 +68,9 @@ async function editTrade(tradeId, tradeData) {
 
 async function endTrade(tradeId, tradeData) {
 	if (!tradeId) throw new HttpError("Bad request!", 400);
-	const { result, totalReturn } = tradeData;
+	const { result, totalReturn, userId } = tradeData;
+
+	if (!userId) throw new HttpError("Bad request!", 400);
 	if (!result) throw new HttpError("Result required!", 400);
 	try {
 		let parsedReturn;
@@ -76,6 +78,8 @@ async function endTrade(tradeId, tradeData) {
 
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
+
+		if (trade.userId !== userId) throw new HttpError("Not allowed!", 403);
 
 		const wallet = fetchWallet(trade.wallet.id);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
@@ -132,4 +136,22 @@ async function fetchUserTrades(userId, queryData = {}) {
 	}
 }
 
-module.exports = { addNewTrade, editTrade, endTrade, fetchUserTrades };
+async function fetchTrade(tradeId) {
+	if (!tradeId) throw new HttpError("Bad request!", 400);
+	try {
+		const trade = await Trade.findById(tradeId);
+		if (!trade) throw new HttpError("Trade not found!", 404);
+
+		return trade;
+	} catch (error) {
+		throw new HttpError("Failed to fetch user trades!", 500);
+	}
+}
+
+module.exports = {
+	addNewTrade,
+	editTrade,
+	endTrade,
+	fetchUserTrades,
+	fetchTrade,
+};
