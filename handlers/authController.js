@@ -1,6 +1,6 @@
 const { loginUserAccount } = require("../services/authService");
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
 	const { username, password } = req.body;
 	try {
 		const { accessToken, refreshToken, userInfo } = await loginUserAccount({

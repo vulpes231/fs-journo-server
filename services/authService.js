@@ -47,7 +47,7 @@ async function loginUserAccount(userData) {
 		};
 		return { accessToken, refreshToken, userInfo };
 	} catch (error) {
-		throw new HttpError("failed to sign in user", 500);
+		throw new HttpError(error.message, 500);
 	}
 }
 
