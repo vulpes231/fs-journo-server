@@ -4,8 +4,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { HttpError } = require("../utils/utils");
 require("dotenv").config();
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN_SECRET;
 
 async function loginUserAccount(userData) {
 	const { username, password } = userData;
@@ -52,7 +52,7 @@ async function loginUserAccount(userData) {
 }
 
 async function registerUser(userData) {
-	const { username, password, email, firstname, lastname } = userData;
+	const { username, password, email, firstname, lastname, phone } = userData;
 	try {
 		if (!username || !password || !email || !firstname || !lastname)
 			throw new HttpError("Bad request!", 400);
@@ -72,6 +72,7 @@ async function registerUser(userData) {
 				firstname: firstname,
 				lastname: lastname,
 			},
+			phone: phone || null,
 			email: email,
 		};
 

@@ -25,6 +25,9 @@ const userSchema = new Schema({
 			required: true,
 		},
 	},
+	phone: {
+		type: String,
+	},
 	security: {
 		isBanned: {
 			type: Boolean,
