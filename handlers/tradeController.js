@@ -81,6 +81,7 @@ const getUserTrades = async (req, res, next) => {
 				filterBy,
 				filterValue,
 			});
+		// console.log(userTrades);
 		res.status(200).json({
 			message: "User trades fetched successfully.",
 			data: userTrades,
