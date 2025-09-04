@@ -24,6 +24,7 @@ app.use(cookieParser());
 // endpoints
 app.use("/signup", require("./routes/register.js"));
 app.use("/signin", require("./routes/auth.js"));
+app.use("/asset", require("./routes/asset.js"));
 app.use("/", require("./routes/root.js"));
 
 app.use(verifyJWT);

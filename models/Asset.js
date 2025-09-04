@@ -13,5 +13,4 @@ const assetSchema = new Schema({
 });
 
 const Asset = mongoose.model("Asset", assetSchema);
-
 module.exports = Asset;
