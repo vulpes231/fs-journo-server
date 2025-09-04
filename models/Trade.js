@@ -11,17 +11,9 @@ const tradeSchema = new Schema(
 			type: String,
 			enum: ["buy", "sell"],
 		},
-		riskRatio: {
-			type: String,
-		},
-		status: {
-			type: String,
-			enum: ["open", "closed"],
-			default: "open",
-		},
-		result: {
-			type: String,
-			enum: ["won", "lost", "break even"],
+		risk: {
+			ratio: { type: String },
+			percent: { type: String },
 		},
 		wallet: {
 			id: { type: Schema.Types.ObjectId, ref: "Wallet" },
@@ -47,12 +39,27 @@ const tradeSchema = new Schema(
 			lotSize: {
 				type: String,
 			},
+		},
+		performance: {
 			totalReturn: {
+				type: Number,
+				default: 0,
+			},
+			closePrice: {
 				type: Number,
 				default: 0,
 			},
 			closedAt: {
 				type: Date,
+			},
+			status: {
+				type: String,
+				enum: ["open", "closed"],
+				default: "open",
+			},
+			result: {
+				type: String,
+				enum: ["won", "lost", "break even"],
 			},
 		},
 	},

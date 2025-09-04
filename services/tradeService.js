@@ -45,17 +45,13 @@ async function addNewTrade(userId, tradeData) {
 
 async function editTrade(tradeId, tradeData) {
 	if (!tradeId) throw new HttpError("Bad request!", 400);
-	const { riskRatio, entry, stopLoss, takeProfit, status, lotSize } = tradeData;
+	const { stopLoss, takeProfit } = tradeData;
 
 	try {
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
 
-		if (riskRatio) trade.riskRatio = riskRatio;
-		if (status) trade.status = status;
-		if (entry) trade.execution.entry = entry;
 		if (stopLoss) trade.execution.stopLoss = stopLoss;
-		if (lotSize) trade.execution.lotSize = lotSize;
 		if (takeProfit) trade.execution.takeProfit = takeProfit;
 
 		await trade.save();
@@ -68,10 +64,10 @@ async function editTrade(tradeId, tradeData) {
 
 async function endTrade(tradeId, tradeData) {
 	if (!tradeId) throw new HttpError("Bad request!", 400);
-	const { result, totalReturn, userId } = tradeData;
+	const { closePrice, userId } = tradeData;
 
 	if (!userId) throw new HttpError("Bad request!", 400);
-	if (!result) throw new HttpError("Result required!", 400);
+	if (!closePrice) throw new HttpError("Closing price required!", 400);
 	try {
 		let parsedReturn;
 		if (totalReturn) parsedReturn = parseFloat(totalReturn);
@@ -83,6 +79,8 @@ async function endTrade(tradeId, tradeData) {
 
 		const wallet = fetchWallet(trade.wallet.id);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
+
+		const totalDistance = trade.execution.entry - closePrice;
 
 		if (totalReturn) trade.execution.totalReturn = parsedReturn;
 
