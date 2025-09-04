@@ -29,12 +29,12 @@ const tradeSchema = new Schema(
 				default: 0,
 			},
 			stopLoss: {
-				type: Number,
-				default: 0,
+				point: { type: Number, default: 0 },
+				usdValue: { type: Number, default: 0 },
 			},
 			takeProfit: {
-				type: Number,
-				default: 0,
+				point: { type: Number, default: 0 },
+				usdValue: { type: Number, default: 0 },
 			},
 			lotSize: {
 				type: String,

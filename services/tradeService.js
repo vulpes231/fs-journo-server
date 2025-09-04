@@ -1,5 +1,5 @@
 const Trade = require("../models/Trade");
-const { HttpError } = require("../utils/utils");
+const { HttpError, calculatePipValue } = require("../utils/utils");
 const { fetchWallet } = require("./walletService");
 
 async function addNewTrade(userId, tradeData) {
@@ -17,28 +17,62 @@ async function addNewTrade(userId, tradeData) {
 
 	if (!asset || !orderType || !entry)
 		throw new HttpError("Fill required fields!", 400);
+
 	try {
 		const wallet = await fetchWallet(walletId);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
-		const tradeData = {
+
+		// --- calculate pip value ---
+		const pipValue = calculatePipValue(
+			asset,
+			Number(lotSize),
+			entry,
+			wallet.currency
+		);
+
+		// --- stop loss / take profit distances (in pips or points) ---
+		let stopLossPips = stopLoss
+			? Math.abs(entry - stopLoss) /
+			  (asset.includes("JPY") ? 0.01 : asset === "XAU/USD" ? 0.01 : 0.0001)
+			: 0;
+		let takeProfitPips = takeProfit
+			? Math.abs(entry - takeProfit) /
+			  (asset.includes("JPY") ? 0.01 : asset === "XAU/USD" ? 0.01 : 0.0001)
+			: 0;
+
+		// --- usd values ---
+		const stopLossUsd = stopLossPips * pipValue;
+		const takeProfitUsd = takeProfitPips * pipValue;
+
+		const tradeDoc = {
 			asset: asset,
 			orderType: orderType,
-			riskRatio: riskRatio || null,
+			risk: {
+				ratio: riskRatio || null,
+			},
 			userId: userId,
 			wallet: {
 				id: wallet._id,
 				name: wallet.name,
 			},
 			execution: {
-				entry: entry || null,
-				stopLoss: stopLoss || null,
-				takeProfit: takeProfit || null,
+				entry: entry,
+				stopLoss: {
+					point: stopLoss || null,
+					usdValue: stopLossUsd || 0,
+				},
+				takeProfit: {
+					point: takeProfit || null,
+					usdValue: takeProfitUsd || 0,
+				},
 				lotSize: lotSize || null,
 			},
 		};
-		const newTrade = await Trade.create(tradeData);
+
+		const newTrade = await Trade.create(tradeDoc);
 		return newTrade;
 	} catch (error) {
+		console.error(error);
 		throw new HttpError("Failed to add trade! Try again.", 500);
 	}
 }
@@ -68,32 +102,69 @@ async function endTrade(tradeId, tradeData) {
 
 	if (!userId) throw new HttpError("Bad request!", 400);
 	if (!closePrice) throw new HttpError("Closing price required!", 400);
-	try {
-		let parsedReturn;
-		if (totalReturn) parsedReturn = parseFloat(totalReturn);
 
+	try {
+		// --- find trade ---
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
 
-		if (trade.userId !== userId) throw new HttpError("Not allowed!", 403);
+		if (trade.userId.toString() !== userId.toString()) {
+			throw new HttpError("Not allowed!", 403);
+		}
 
-		const wallet = fetchWallet(trade.wallet.id);
+		// --- fetch wallet ---
+		const wallet = await fetchWallet(trade.wallet.id);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
 
-		const totalDistance = trade.execution.entry - closePrice;
+		// --- calculate profit/loss ---
+		const { entry, lotSize } = trade.execution;
+		const pipValue = calculatePipValue(
+			trade.asset,
+			Number(lotSize),
+			entry,
+			wallet.currency
+		);
 
-		if (totalReturn) trade.execution.totalReturn = parsedReturn;
+		const pipSize = trade.asset.includes("JPY")
+			? 0.01
+			: trade.asset === "XAU/USD"
+			? 0.01
+			: ["US30", "NAS100", "NASDAQ"].includes(trade.asset)
+			? 1
+			: 0.0001;
 
-		wallet.balance += trade.execution.totalReturn;
+		// price movement in pips
+		const pipsMoved = Math.abs(entry - closePrice) / pipSize;
+		const usdMoved = pipsMoved * pipValue;
+
+		// profit/loss depending on buy/sell
+		let totalReturn;
+		if (trade.orderType === "buy") {
+			totalReturn = closePrice > entry ? usdMoved : -usdMoved;
+		} else {
+			totalReturn = closePrice < entry ? usdMoved : -usdMoved;
+		}
+
+		// --- update wallet ---
+		wallet.balance += totalReturn;
 		await wallet.save();
 
-		trade.result = result;
-		trade.status = "closed";
-		trade.execution.closedAt = Date.now();
+		// --- set trade performance ---
+		trade.performance.totalReturn = totalReturn;
+		trade.performance.closePrice = closePrice;
+		trade.performance.closedAt = Date.now();
+		trade.performance.status = "closed";
+
+		// --- result status ---
+		if (totalReturn > 0) trade.performance.result = "won";
+		else if (totalReturn < 0) trade.performance.result = "lost";
+		else trade.performance.result = "break even";
+
 		await trade.save();
 
 		return trade;
 	} catch (error) {
+		console.error(error);
 		throw new HttpError("Failed to close trade! Try again.", 500);
 	}
 }

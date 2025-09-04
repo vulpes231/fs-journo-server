@@ -2,9 +2,9 @@ const Asset = require("../models/Asset");
 const { HttpError } = require("../utils/utils");
 
 async function addAsset(assetData) {
-	const { name, multiplier, pipValue } = assetData;
+	const { name } = assetData;
 	try {
-		const asset = await Asset.create({ name, multiplier, pipValue });
+		const asset = await Asset.create({ name });
 		return asset.name;
 	} catch (error) {
 		throw new HttpError(error.message, 500);
@@ -12,14 +12,12 @@ async function addAsset(assetData) {
 }
 
 async function editAsset(assetId, assetData) {
-	const { name, multiplier, pipValue } = assetData;
+	const { name } = assetData;
 	try {
 		const asset = await Asset.findById(assetId);
 		if (!asset) throw new HttpError("Asset not found!", 400);
 
 		if (name) asset.name = name;
-		if (multiplier) asset.multiplier = multiplier;
-		if (pipValue) asset.pipValue = pipValue;
 
 		await asset.save();
 		return asset;
