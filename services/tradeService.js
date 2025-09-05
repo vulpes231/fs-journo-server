@@ -79,19 +79,52 @@ async function addNewTrade(userId, tradeData) {
 
 async function editTrade(tradeId, tradeData) {
 	if (!tradeId) throw new HttpError("Bad request!", 400);
-	const { stopLoss, takeProfit } = tradeData;
+	const { stopLoss, takeProfit, walletCurrency } = tradeData;
 
 	try {
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
 
-		if (stopLoss) trade.execution.stopLoss = stopLoss;
-		if (takeProfit) trade.execution.takeProfit = takeProfit;
+		const { entry, lotSize } = trade.execution;
+
+		// --- pip value for recalculation ---
+		const pipValue = calculatePipValue(
+			trade.asset,
+			Number(lotSize),
+			entry,
+			walletCurrency
+		);
+
+		const pipSize = trade.asset.includes("JPY")
+			? 0.01
+			: trade.asset === "XAU/USD"
+			? 0.01
+			: ["US30", "NAS100", "NASDAQ"].includes(trade.asset)
+			? 1
+			: 0.0001;
+
+		// --- update stop loss ---
+		if (stopLoss) {
+			const stopLossPips = Math.abs(entry - stopLoss) / pipSize;
+			const stopLossUsd = stopLossPips * pipValue;
+
+			trade.execution.stopLoss.point = stopLoss;
+			trade.execution.stopLoss.usdValue = stopLossUsd;
+		}
+
+		// --- update take profit ---
+		if (takeProfit) {
+			const takeProfitPips = Math.abs(entry - takeProfit) / pipSize;
+			const takeProfitUsd = takeProfitPips * pipValue;
+
+			trade.execution.takeProfit.point = takeProfit;
+			trade.execution.takeProfit.usdValue = takeProfitUsd;
+		}
 
 		await trade.save();
-
 		return trade;
 	} catch (error) {
+		console.error(error);
 		throw new HttpError("Failed to update trade! Try again.", 500);
 	}
 }

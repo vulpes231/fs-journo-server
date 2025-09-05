@@ -65,9 +65,11 @@ const changePassword = async (req, res) => {
 const logoutUser = async (req, res) => {
 	const userId = req.user.userId;
 	try {
+		console.log(userId);
 		await logoutUserAccount(userId);
 		res.clearCookie("jwt", { secure: true, httpOnly: true });
-		res.status(204).json({
+		console.log("success");
+		res.status(200).json({
 			data: null,
 			message: "Logout successfully.",
 			success: true,
