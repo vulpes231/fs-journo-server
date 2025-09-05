@@ -52,9 +52,17 @@ async function loginUserAccount(userData) {
 }
 
 async function registerUser(userData) {
-	const { username, password, email, firstname, lastname, phone } = userData;
+	const { username, password, email, firstname, lastname, phone, currency } =
+		userData;
 	try {
-		if (!username || !password || !email || !firstname || !lastname)
+		if (
+			!username ||
+			!password ||
+			!email ||
+			!firstname ||
+			!lastname ||
+			!currency
+		)
 			throw new HttpError("Bad request!", 400);
 
 		const mailExists = await User.findOne({ email });
@@ -81,6 +89,7 @@ async function registerUser(userData) {
 		await Wallet.create({
 			name: "wallet 1",
 			userId: newUser._id,
+			currency: currency || "usd",
 		});
 
 		return newUser.username;

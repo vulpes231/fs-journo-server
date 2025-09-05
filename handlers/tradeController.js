@@ -22,10 +22,10 @@ const createTrade = async (req, res, next) => {
 };
 
 const updateTrade = async (req, res, next) => {
-	const userId = req.user.userId;
+	const { tradeId } = req.params;
 	const tradeData = req.body;
 	try {
-		await editTrade(userId, tradeData);
+		await editTrade(tradeId, tradeData);
 		res.status(200).json({
 			message: "Trade updated successfully.",
 			data: null,

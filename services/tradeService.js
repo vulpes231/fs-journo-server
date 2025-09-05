@@ -1,4 +1,6 @@
 const Trade = require("../models/Trade");
+const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 const { HttpError, calculatePipValue } = require("../utils/utils");
 const { fetchWallet } = require("./walletService");
 
@@ -79,11 +81,14 @@ async function addNewTrade(userId, tradeData) {
 
 async function editTrade(tradeId, tradeData) {
 	if (!tradeId) throw new HttpError("Bad request!", 400);
-	const { stopLoss, takeProfit, walletCurrency } = tradeData;
+	const { stopLoss, takeProfit } = tradeData;
 
 	try {
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
+
+		const userWallet = await Wallet.findById(trade.wallet.id);
+		if (!userWallet) throw new HttpError("Trade not found!", 404);
 
 		const { entry, lotSize } = trade.execution;
 
@@ -92,7 +97,7 @@ async function editTrade(tradeId, tradeData) {
 			trade.asset,
 			Number(lotSize),
 			entry,
-			walletCurrency
+			userWallet.currency
 		);
 
 		const pipSize = trade.asset.includes("JPY")

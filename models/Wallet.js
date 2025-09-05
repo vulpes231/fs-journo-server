@@ -29,7 +29,7 @@ const walletSchema = new Schema(
 		},
 		currency: {
 			type: String,
-			default: "USD",
+			default: "usd",
 		},
 	},
 	{
