@@ -2,12 +2,13 @@ const Trade = require("../models/Trade");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
 const { HttpError, calculatePipValue } = require("../utils/utils");
+const { fetchAssetById } = require("./assetService");
 const { fetchWallet } = require("./walletService");
 
 async function addNewTrade(userId, tradeData) {
 	if (!userId) throw new HttpError("Bad request!", 400);
 	const {
-		asset,
+		assetId,
 		orderType,
 		riskRatio,
 		entry,
@@ -17,16 +18,17 @@ async function addNewTrade(userId, tradeData) {
 		walletId,
 	} = tradeData;
 
-	if (!asset || !orderType || !entry)
+	if (!assetId || !orderType || !entry)
 		throw new HttpError("Fill required fields!", 400);
 
 	try {
+		const assetInfo = await fetchAssetById(assetId);
 		const wallet = await fetchWallet(walletId);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
 
 		// --- calculate pip value ---
 		const pipValue = calculatePipValue(
-			asset,
+			assetInfo.name,
 			Number(lotSize),
 			entry,
 			wallet.currency
@@ -35,11 +37,19 @@ async function addNewTrade(userId, tradeData) {
 		// --- stop loss / take profit distances (in pips or points) ---
 		let stopLossPips = stopLoss
 			? Math.abs(entry - stopLoss) /
-			  (asset.includes("JPY") ? 0.01 : asset === "XAU/USD" ? 0.01 : 0.0001)
+			  (assetInfo.name.includes("jpy")
+					? 0.01
+					: assetInfo.name === "xau/usd"
+					? 0.01
+					: 0.0001)
 			: 0;
 		let takeProfitPips = takeProfit
 			? Math.abs(entry - takeProfit) /
-			  (asset.includes("JPY") ? 0.01 : asset === "XAU/USD" ? 0.01 : 0.0001)
+			  (assetInfo.name.includes("jpy")
+					? 0.01
+					: assetInfo.name === "xau/usd"
+					? 0.01
+					: 0.0001)
 			: 0;
 
 		// --- usd values ---
@@ -50,7 +60,7 @@ async function addNewTrade(userId, tradeData) {
 			throw new HttpError("Insufficient funds!", 404);
 
 		const tradeDoc = {
-			asset: asset,
+			asset: assetInfo.name,
 			orderType: orderType,
 			risk: {
 				ratio: riskRatio || null,
