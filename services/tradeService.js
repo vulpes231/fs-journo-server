@@ -46,6 +46,9 @@ async function addNewTrade(userId, tradeData) {
 		const stopLossUsd = stopLossPips * pipValue;
 		const takeProfitUsd = takeProfitPips * pipValue;
 
+		if (wallet.balance < stopLossUsd)
+			throw new HttpError("Insufficient funds!", 404);
+
 		const tradeDoc = {
 			asset: asset,
 			orderType: orderType,

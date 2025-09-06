@@ -1,4 +1,8 @@
-const { fetchUserWallets, fetchWallet } = require("../services/walletService");
+const {
+	fetchUserWallets,
+	fetchWallet,
+	updateUserBalance,
+} = require("../services/walletService");
 
 const getUserWallets = async (req, res, next) => {
 	const userId = req.user.userId;
@@ -28,4 +32,19 @@ const getWalletInfo = async (req, res, next) => {
 	}
 };
 
-module.exports = { getWalletInfo, getUserWallets };
+const updateBalance = async (req, res, next) => {
+	const walletData = req.body;
+	const { walletId } = req.params;
+	try {
+		await updateUserBalance(walletId, walletData);
+		res.status(200).json({
+			data: null,
+			success: true,
+			message: "Balance updated successfully.",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+module.exports = { getWalletInfo, getUserWallets, updateBalance };

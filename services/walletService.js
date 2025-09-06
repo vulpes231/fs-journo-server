@@ -33,8 +33,29 @@ async function suspendUserWallet(walletId) {
 		if (!updatedWallet) throw new HttpError("Wallet not found", 404);
 		return updatedWallet;
 	} catch (error) {
-		throw new HttpError("Failed to update user wallet", 500);
+		throw new HttpError("Failed to suspend user wallet", 500);
 	}
 }
 
-module.exports = { fetchUserWallets, fetchWallet };
+async function updateUserBalance(walletId, walletData) {
+	const { balance } = walletData;
+	if (!balance || !walletId) throw new HttpError("Bad request!", 400);
+
+	try {
+		const parsedBal = parseFloat(balance);
+		if (parsedBal <= 0)
+			throw new HttpError("Balance must be greater than 0!", 400);
+		const updatedWallet = await Wallet.findByIdAndUpdate(
+			walletId,
+			{ balance: balance }, // flips true <-> false
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedWallet) throw new HttpError("Wallet not found", 404);
+		return updatedWallet;
+	} catch (error) {
+		throw new HttpError("Failed to update user wallet balance", 500);
+	}
+}
+
+module.exports = { fetchUserWallets, fetchWallet, updateUserBalance };
