@@ -17,25 +17,29 @@ async function fetchUserTradeAnalytics(userId) {
 			(trade) => trade.performance.result === "won"
 		);
 		const tradesLost = userTrades.filter(
-			(trade) => trade.performance.result === "lost"
+			(trade) => trade.performance.result === "loss"
 		);
 
 		const winningRate =
 			userTrades.length > 0 ? (tradesWon.length / userTrades.length) * 100 : 0;
 
 		const profit =
-			tradesWon > 0
-				? tradesWon.reduce((acc, trade) => {
-						return acc + (trade.execution?.takeProfit?.usdValue || 0);
-				  }, 0)
+			tradesWon.length > 0
+				? tradesWon.reduce(
+						(acc, trade) => acc + (trade.performance?.totalReturn || 0),
+						0
+				  )
 				: 0;
 
 		const loss =
-			tradesLost > 0
-				? tradesLost.reduce((acc, trade) => {
-						return acc + (trade.execution?.takeProfit?.usdValue || 0);
-				  }, 0)
+			tradesLost.length > 0
+				? tradesLost.reduce(
+						(acc, trade) => acc + (trade.performance?.totalReturn || 0),
+						0
+				  )
 				: 0;
+
+		// console.log(loss);
 
 		const tradeAnalytics = {
 			totalTrades: userTrades.length,

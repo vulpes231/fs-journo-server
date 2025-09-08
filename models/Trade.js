@@ -59,7 +59,7 @@ const tradeSchema = new Schema(
 			},
 			result: {
 				type: String,
-				enum: ["won", "lost", "break even", "pending"],
+				enum: ["won", "loss", "break even", "pending"],
 				default: "pending",
 			},
 		},

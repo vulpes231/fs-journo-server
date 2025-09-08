@@ -23,6 +23,7 @@ const createTrade = async (req, res, next) => {
 
 const updateTrade = async (req, res, next) => {
 	const { tradeId } = req.params;
+
 	const tradeData = req.body;
 	try {
 		await editTrade(tradeId, tradeData);

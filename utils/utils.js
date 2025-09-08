@@ -13,19 +13,25 @@ function calculatePipValue(symbol, lotSize, price, accountCurrency) {
 	let pipSize;
 	let contractSize;
 
-	if (symbol.includes("JPY")) pipSize = 0.01;
-	else if (symbol === "XAU/USD") {
+	if (symbol.includes("jpy")) {
 		pipSize = 0.01;
-		contractSize = 100;
-	} else if (["US30", "NAS100"].includes(symbol)) {
+		contractSize = 100000;
+	} else if (symbol === "xau/usd") {
+		pipSize = 0.01;
+		contractSize = 100; // 100 oz per lot
+		// For gold, pip value does NOT divide by price
+		return pipSize * contractSize * lotSize;
+	} else if (["us30", "nas100"].includes(symbol)) {
 		pipSize = 1;
 		contractSize = 1;
-	} else pipSize = 0.0001;
+		return pipSize * contractSize * lotSize;
+	} else {
+		pipSize = 0.0001;
+		contractSize = 100000; // default forex lot
+	}
 
-	if (!contractSize) contractSize = 100000; // default forex lot
-
-	const pipValue = (pipSize * contractSize * lotSize) / price;
-	return pipValue;
+	// For forex, divide by price
+	return (pipSize * contractSize * lotSize) / price;
 }
 
 module.exports = { HttpError, calculatePipValue };
