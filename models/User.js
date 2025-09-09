@@ -38,6 +38,19 @@ const userSchema = new Schema({
 			default: false,
 		},
 	},
+	currency: {
+		type: String,
+		default: "usd",
+	},
+	settings: {
+		maxRiskPerTrade: {
+			type: String,
+			default: "0.15",
+		},
+		utc: {
+			type: String,
+		},
+	},
 	refreshToken: {
 		type: String,
 	},

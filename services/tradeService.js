@@ -5,6 +5,7 @@ const Wallet = require("../models/Wallet");
 const { HttpError, calculatePipValue } = require("../utils/utils");
 const { fetchAssetById } = require("./assetService");
 const { fetchWallet } = require("./walletService");
+const { getUserInfo } = require("./userService");
 
 async function addNewTrade(userId, tradeData) {
 	if (!userId) throw new HttpError("Bad request!", 400);
@@ -23,6 +24,8 @@ async function addNewTrade(userId, tradeData) {
 		throw new HttpError("Fill required fields!", 400);
 
 	try {
+		const user = await getUserInfo(userId);
+		if (!user) throw new HttpError("User not found!", 404);
 		const assetInfo = await fetchAssetById(assetId);
 		const wallet = await fetchWallet(walletId);
 		if (!wallet) throw new HttpError("Wallet not found!", 404);
@@ -32,7 +35,7 @@ async function addNewTrade(userId, tradeData) {
 			assetInfo.name,
 			Number(lotSize),
 			entry,
-			wallet.currency
+			user.currency
 		);
 
 		// --- stop loss / take profit distances (in pips or points) ---
@@ -107,6 +110,9 @@ async function editTrade(tradeId, tradeData) {
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
 
+		const user = await getUserInfo(trade.userId);
+		if (!user) throw new HttpError("user not found!", 404);
+
 		// ensure trade has a wallet id and it's a valid ObjectId
 		if (!trade.wallet || !trade.wallet.id) {
 			throw new HttpError("Missing wallet id in trade record!", 400);
@@ -130,7 +136,7 @@ async function editTrade(tradeId, tradeData) {
 			trade.asset,
 			lotSizeNum,
 			entry,
-			userWallet.currency
+			user.currency
 		);
 		if (!Number.isFinite(pipValue) || pipValue <= 0) {
 			// allow very small pipValue if valid, but protect against NaN/zero
@@ -199,6 +205,8 @@ async function endTrade(tradeId, tradeData) {
 	if (!closePrice) throw new HttpError("Closing price required!", 400);
 
 	try {
+		const user = await getUserInfo(userId);
+		if (!user) throw new HttpError("user not found!", 404);
 		// --- find trade ---
 		const trade = await Trade.findById(tradeId);
 		if (!trade) throw new HttpError("Trade not found!", 404);
@@ -217,7 +225,7 @@ async function endTrade(tradeId, tradeData) {
 			trade.asset,
 			Number(lotSize),
 			entry,
-			wallet.currency
+			user.currency
 		);
 
 		const symbol = String(trade.asset ?? "").toUpperCase();

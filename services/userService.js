@@ -16,7 +16,15 @@ async function getUserInfo(userId) {
 async function editUserInfo(userId, userData) {
 	if (!userId) throw new HttpError("Bad request!", 400);
 
-	const { username, firstname, lastname, email } = userData;
+	const {
+		username,
+		firstname,
+		lastname,
+		email,
+		timezone,
+		riskPerTrade,
+		currency,
+	} = userData;
 
 	try {
 		const updatedUser = await User.findByIdAndUpdate(
@@ -24,8 +32,11 @@ async function editUserInfo(userId, userData) {
 			{
 				...(username && { username }),
 				...(email && { email }),
+				...(currency && { currency }),
 				...(firstname && { "fullname.firstname": firstname }),
 				...(lastname && { "fullname.lastname": lastname }),
+				...(timezone && { "settings.utc": timezone }),
+				...(riskPerTrade && { "settings.maxRiskPerTrade": riskPerTrade }),
 			},
 			{ new: true, runValidators: true } // new = return updated doc, runValidators = apply schema validation
 		);
@@ -40,11 +51,12 @@ async function editUserInfo(userId, userData) {
 
 async function updateAccountPassword(userId, userData) {
 	if (!userId) throw new HttpError("Bad request!", 400);
+
 	const { password, newPassword } = userData;
 	if (!password || !newPassword)
 		throw new HttpError("All fields required!", 400);
 	try {
-		const user = getUserInfo(userId);
+		const user = await getUserInfo(userId);
 
 		const passwordMatch = await bcrypt.compare(password, user.password);
 		if (!passwordMatch) throw new HttpError("Invalid password!", 400);
@@ -55,7 +67,8 @@ async function updateAccountPassword(userId, userData) {
 		await user.save();
 		return true;
 	} catch (error) {
-		throw new HttpError("Failed to update account password!", 500);
+		console.log(error);
+		throw new HttpError(error.message, 500);
 	}
 }
 

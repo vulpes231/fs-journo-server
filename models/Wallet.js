@@ -27,10 +27,6 @@ const walletSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
-		currency: {
-			type: String,
-			default: "usd",
-		},
 	},
 	{
 		timestamps: true,

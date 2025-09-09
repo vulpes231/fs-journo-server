@@ -7,7 +7,7 @@ const {
 } = require("../services/userService");
 const { errResponse } = require("../utils/utils");
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
 	try {
 		const users = await User.find();
 		res.status(200).json({
@@ -20,7 +20,7 @@ const getAllUsers = async (req, res) => {
 	}
 };
 
-const getUser = async (req, res) => {
+const getUser = async (req, res, next) => {
 	const userId = req.user.userId;
 	try {
 		const user = await getUserInfo(userId);
@@ -34,7 +34,7 @@ const getUser = async (req, res) => {
 	}
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
 	const userId = req.user.userId;
 	try {
 		const user = await editUserInfo(userId, req.body);
@@ -48,10 +48,11 @@ const updateUser = async (req, res) => {
 	}
 };
 
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
 	const userId = req.user.userId;
+	const { password, newPassword } = req.body;
 	try {
-		await updateAccountPassword(userId, req.body);
+		await updateAccountPassword(userId, { password, newPassword });
 		res.status(200).json({
 			data: null,
 			message: "Password updated successfully.",
@@ -62,7 +63,7 @@ const changePassword = async (req, res) => {
 	}
 };
 
-const logoutUser = async (req, res) => {
+const logoutUser = async (req, res, next) => {
 	const userId = req.user.userId;
 	try {
 		console.log(userId);
