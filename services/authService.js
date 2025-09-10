@@ -13,7 +13,7 @@ async function loginUserAccount(userData) {
 		if (!username || !password)
 			throw new HttpError("Username and password required!", 400);
 
-		const user = await User.findOne({ username });
+		const user = await User.findOne({ username }).select("+password");
 		if (!user) throw new HttpError("User does not exist!", 400);
 
 		const passwordMatch = await bcrypt.compare(password, user.password);
@@ -70,6 +70,8 @@ async function registerUser(userData) {
 
 		const user = await User.findOne({ username });
 		if (user) throw new HttpError("User already exist!", 409);
+
+		// console.log(user);
 
 		const passwordHash = await bcrypt.hash(password, 10);
 

@@ -56,7 +56,7 @@ async function updateAccountPassword(userId, userData) {
 	if (!password || !newPassword)
 		throw new HttpError("All fields required!", 400);
 	try {
-		const user = await getUserInfo(userId);
+		const user = await getUserInfo(userId).select("+password");
 
 		const passwordMatch = await bcrypt.compare(password, user.password);
 		if (!passwordMatch) throw new HttpError("Invalid password!", 400);

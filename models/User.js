@@ -14,6 +14,7 @@ const userSchema = new Schema({
 	password: {
 		type: String,
 		required: true,
+		select: false,
 	},
 	fullname: {
 		firstname: {
@@ -53,6 +54,7 @@ const userSchema = new Schema({
 	},
 	refreshToken: {
 		type: String,
+		select: false,
 	},
 });
 

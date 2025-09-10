@@ -45,14 +45,14 @@ async function updateUserBalance(walletId, walletData) {
 		const parsedBal = parseFloat(balance);
 		if (parsedBal <= 0)
 			throw new HttpError("Balance must be greater than 0!", 400);
-		const updatedWallet = await Wallet.findByIdAndUpdate(
-			walletId,
-			{ balance: balance }, // flips true <-> false
-			{ new: true, runValidators: true }
-		);
 
-		if (!updatedWallet) throw new HttpError("Wallet not found", 404);
-		return updatedWallet;
+		const wallet = await Wallet.findById(walletId);
+		if (!wallet) throw new HttpError("Wallet not found", 404);
+
+		wallet.balance += balance;
+		await wallet.save();
+
+		return wallet;
 	} catch (error) {
 		throw new HttpError("Failed to update user wallet balance", 500);
 	}
