@@ -71,7 +71,7 @@ const tradeSchema = new Schema(
 	}
 );
 
-tradeSchema.index({ status: -1 });
+tradeSchema.index({ "performance.status": 1, createdAt: -1 });
 
 const Trade = mongoose.model("Trade", tradeSchema);
 module.exports = Trade;

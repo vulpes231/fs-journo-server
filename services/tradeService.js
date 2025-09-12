@@ -280,32 +280,41 @@ async function fetchUserTrades(userId, queryData = {}) {
 
 	try {
 		// Sorting
+		const PAGESET = Math.max(1, parseInt(page));
+		const LIMITSET = Math.min(50, parseInt(limit)); // protect against huge requests
+
+		// Sorting
 		const sort = {};
-		if (sortBy) sort[sortBy] = -1; // e.g. { status: -1 }
+		if (sortBy) {
+			// handle aliasing for nested paths
+			if (sortBy === "status") sort["performance.status"] = -1;
+			else sort[sortBy] = -1;
+		}
 
 		// Filtering
 		const filter = { userId };
 		if (filterBy && filterValue !== undefined) {
-			filter[filterBy] = filterValue;
+			if (filterBy === "status") filter["performance.status"] = filterValue;
+			else filter[filterBy] = filterValue;
 		}
 
 		// Query trades
 		const userTrades = await Trade.find(filter)
 			.sort(sort)
-			.skip((page - 1) * limit)
-			.limit(limit);
+			.skip((PAGESET - 1) * LIMITSET)
+			.limit(LIMITSET);
 
 		const totalTrades = await Trade.countDocuments(filter);
-		const totalPages = Math.ceil(totalTrades / limit);
+		const totalPages = Math.ceil(totalTrades / LIMITSET);
 
 		return {
 			userTrades,
 			totalTrades,
 			totalPages,
-			currentPage: page,
+			currentPage: PAGESET,
 		};
 	} catch (error) {
-		throw new HttpError("Failed to fetch user trades!", 500);
+		throw new HttpError(error.message, error.statusCode);
 	}
 }
 
